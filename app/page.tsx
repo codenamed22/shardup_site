@@ -1,3 +1,5 @@
+import SiteHeader from "./site-header";
+
 const communityPillars = [
   "Build with peers",
   "Learn from mentors",
@@ -6,33 +8,24 @@ const communityPillars = [
 
 export default function Home() {
   return (
-    <main className="site-shell">
-      <header className="site-header" aria-label="Main navigation">
-        <a className="brand" href="#top" aria-label="ShardUp home">
-          ShardUp
-        </a>
-        <nav className="nav-links">
-          <a href="#about">About</a>
-          <a href="#community">Community</a>
-          <a href="https://www.linkedin.com/company/shardup">Join</a>
-        </nav>
-      </header>
-
-      <section id="top" className="hero">
-        <h1>A technical community built on mentorship and real work.</h1>
-        <p className="hero-copy">
-          ShardUp brings alumni and students together to learn, build, and grow
-          through hands-on collaboration and steady feedback.
-        </p>
-        <div className="hero-actions" aria-label="Primary actions">
-          <a className="button" href="https://www.linkedin.com/company/shardup">
-            Join the community
-          </a>
-          <a className="text-link" href="#about">
-            Learn more
-          </a>
-        </div>
-      </section>
+    <>
+      <SiteHeader />
+      <main className="site-shell">
+        <section id="top" className="hero">
+          <h1>A technical community built on mentorship and real work.</h1>
+          <p className="hero-copy">
+            ShardUp brings alumni and students together to learn, build, and grow
+            through hands-on collaboration and steady feedback.
+          </p>
+          <div className="hero-actions" aria-label="Primary actions">
+            <a className="button" href="/join">
+              Join the community
+            </a>
+            <a className="text-link" href="#about">
+              Learn more
+            </a>
+          </div>
+        </section>
 
       <section id="about" className="section about-section">
         <div>
@@ -67,6 +60,7 @@ export default function Home() {
         <p>Built for the ShardUp community.</p>
         <a href="https://www.linkedin.com/company/shardup">LinkedIn</a>
       </footer>
-    </main>
+      </main>
+    </>
   );
 }

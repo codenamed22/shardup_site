@@ -26,6 +26,24 @@ a {
   text-decoration: none;
 }
 
+.site-header button {
+  padding: 0;
+  background: transparent;
+  border: 0;
+  color: inherit;
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.site-header button:hover {
+  color: var(--accent);
+}
+
+.site-header form {
+  margin: 0;
+}
+
 .site-shell {
   width: min(1080px, calc(100% - 32px));
   margin: 0 auto;
@@ -50,6 +68,8 @@ a {
 
 .nav-links {
   display: flex;
+  align-items: center;
+  flex-wrap: wrap;
   gap: 22px;
   color: var(--muted);
   font-family: Arial, Helvetica, sans-serif;
@@ -105,19 +125,32 @@ a {
   font-family: Arial, Helvetica, sans-serif;
 }
 
-.button {
+.button,
+.secondary-button {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   min-height: 46px;
   padding: 0 22px;
-  background: var(--accent);
   border: 2px solid var(--ink);
   box-shadow: 5px 5px 0 var(--ink);
   color: var(--ink);
+  font-family: Arial, Helvetica, sans-serif;
   font-weight: 800;
+  line-height: 1;
+  text-align: center;
 }
 
-.button:hover {
+.button {
+  background: var(--accent);
+}
+
+.secondary-button {
+  background: transparent;
+}
+
+.button:hover,
+.secondary-button:hover {
   transform: translate(1px, 1px);
   box-shadow: 4px 4px 0 var(--ink);
 }
@@ -198,6 +231,164 @@ a {
   font-weight: 800;
 }
 
+.auth-shell,
+.app-shell {
+  width: min(880px, calc(100% - 32px));
+  min-height: calc(100vh - 88px);
+  display: grid;
+  align-content: center;
+  margin: 0 auto;
+  padding: 48px 0;
+}
+
+.app-shell {
+  align-content: start;
+}
+
+.auth-card,
+.app-card {
+  padding: clamp(28px, 5vw, 56px);
+  background: var(--paper);
+  border: 1px solid var(--line);
+}
+
+.wide-card {
+  width: min(1080px, calc(100vw - 32px));
+}
+
+.auth-card h1,
+.app-card h1 {
+  max-width: 760px;
+  margin: 0;
+  font-size: clamp(2.35rem, 5vw, 4.4rem);
+  line-height: 1;
+  letter-spacing: -0.06em;
+}
+
+.auth-card p,
+.app-card p {
+  max-width: 700px;
+  color: var(--muted);
+  font-size: 1.12rem;
+  line-height: 1.6;
+}
+
+.auth-card form,
+.app-card form {
+  margin-top: 28px;
+}
+
+.auth-card form + form {
+  margin-top: 14px;
+}
+
+.auth-actions-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-top: 28px;
+}
+
+.auth-actions-list form {
+  margin-top: 0;
+}
+
+.stacked-form {
+  display: grid;
+  gap: 18px;
+}
+
+.stacked-form label {
+  display: grid;
+  gap: 8px;
+  color: var(--ink);
+  font-family: Arial, Helvetica, sans-serif;
+  font-weight: 800;
+}
+
+.stacked-form input,
+.stacked-form textarea {
+  width: 100%;
+  padding: 13px 14px;
+  border: 1px solid var(--line);
+  background: #fffef8;
+  color: var(--ink);
+  font: inherit;
+}
+
+.stacked-form textarea {
+  min-height: 120px;
+  resize: vertical;
+}
+
+.form-message {
+  padding: 12px 14px;
+  border-left: 4px solid var(--accent);
+  background: #fffef8;
+  color: var(--ink);
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.form-message.error {
+  border-left-color: #d33f2f;
+}
+
+.form-message code {
+  padding: 2px 5px;
+  background: #f1efe4;
+  border: 1px solid var(--line);
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  font-size: 0.9em;
+}
+
+.application-summary {
+  display: grid;
+  gap: 10px;
+  margin-top: 28px;
+  padding: 18px;
+  border: 1px solid var(--line);
+  background: #fffef8;
+}
+
+.application-summary h2,
+.application-summary p {
+  margin: 0;
+}
+
+.application-summary h2,
+.application-summary strong {
+  color: var(--ink);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+.application-list {
+  display: grid;
+  gap: 18px;
+  margin-top: 28px;
+}
+
+.application-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 20px;
+  padding: 18px;
+  border: 1px solid var(--line);
+  background: #fffef8;
+}
+
+.application-row h2 {
+  margin: 0 0 8px;
+  font-size: 1.3rem;
+}
+
+.review-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
 @media (max-width: 720px) {
   .site-header,
   .hero-actions,
@@ -210,14 +401,32 @@ a {
     gap: 16px;
   }
 
+  .auth-actions-list,
+  .hero-actions {
+    align-items: stretch;
+  }
+
+  .auth-actions-list > *,
+  .auth-actions-list form,
+  .auth-actions-list button,
+  .auth-actions-list a {
+    width: 100%;
+  }
+
   .hero {
     min-height: auto;
     padding: 64px 0 72px;
   }
 
   .about-section,
-  .pillar-list {
+  .pillar-list,
+  .application-row {
     grid-template-columns: 1fr;
+  }
+
+  .review-actions {
+    align-items: stretch;
+    flex-direction: column;
   }
 
   .section {
