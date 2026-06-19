@@ -1,3 +1,4 @@
+import { ApplicationStatus, UserStatus } from "@prisma/client";
 import { redirect } from "next/navigation";
 import {
   auth,
@@ -5,6 +6,8 @@ import {
   isLocalDevAuthEnabled,
   signIn,
 } from "../../../auth";
+import { ensureRegistrationRecords } from "../../../lib/access";
+import { prisma } from "../../../lib/prisma";
 
 export default async function JoinPage() {
   const session = await auth();
@@ -14,7 +17,20 @@ export default async function JoinPage() {
   }
 
   if (session?.user) {
-    redirect("/apply");
+    await ensureRegistrationRecords(session.user.id, session.user.email);
+    await prisma.$transaction([
+      prisma.user.update({
+        where: { id: session.user.id },
+        data: { status: UserStatus.PENDING },
+      }),
+      prisma.application.create({
+        data: {
+          userId: session.user.id,
+          status: ApplicationStatus.DRAFT,
+        },
+      }),
+    ]);
+    redirect("/apply?started=1");
   }
 
   return (
