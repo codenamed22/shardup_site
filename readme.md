@@ -135,6 +135,8 @@ The app uses Auth.js with Google OAuth, Prisma, and Postgres for the authenticat
 
 Required environment variables are listed in `.env.example`.
 
+For local development, Google credentials are optional. When `NODE_ENV` is not `production`, `/join` shows a development-only local sign-in button that creates an active admin test user in your local database. This lets contributors run the app without sharing Google OAuth secrets.
+
 Google OAuth callback URLs:
 
 - Local: `http://localhost:3000/api/auth/callback/google`

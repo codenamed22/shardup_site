@@ -245,6 +245,10 @@ a {
   margin-top: 28px;
 }
 
+.auth-card form + form {
+  margin-top: 14px;
+}
+
 .stacked-form {
   display: grid;
   gap: 18px;
@@ -305,6 +309,12 @@ a {
   border: 1px solid var(--line);
   font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
   font-size: 0.9em;
+}
+
+.dev-note {
+  margin-top: 18px;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 0.95rem !important;
 }
 
 .application-list {

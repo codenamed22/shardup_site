@@ -1,13 +1,68 @@
 import NextAuth from "next-auth";
+import Credentials from "next-auth/providers/credentials";
 import Google from "next-auth/providers/google";
 import { PrismaAdapter } from "@auth/prisma-adapter";
+import { Role, UserStatus } from "@prisma/client";
 import { prisma } from "./lib/prisma";
 import { ensureRegistrationRecords, syncUserAccess } from "./lib/access";
 
 const isDevelopment = process.env.NODE_ENV !== "production";
+export const isLocalDevAuthEnabled = isDevelopment;
 export const isGoogleOAuthConfigured = Boolean(
   process.env.AUTH_GOOGLE_ID && process.env.AUTH_GOOGLE_SECRET,
 );
+
+const providers = [
+  ...(isGoogleOAuthConfigured
+    ? [
+        Google({
+          clientId: process.env.AUTH_GOOGLE_ID ?? "",
+          clientSecret: process.env.AUTH_GOOGLE_SECRET ?? "",
+          allowDangerousEmailAccountLinking: false,
+        }),
+      ]
+    : []),
+  ...(isLocalDevAuthEnabled
+    ? [
+        Credentials({
+          id: "local-dev",
+          name: "Local Development",
+          credentials: {
+            email: { label: "Email", type: "email" },
+            name: { label: "Name", type: "text" },
+          },
+          async authorize(credentials) {
+            const email = String(credentials?.email ?? "developer@shardup.local");
+            const name = String(credentials?.name ?? "Local Developer");
+
+            const user = await prisma.user.upsert({
+              where: { email },
+              update: {
+                name,
+                role: Role.ADMIN,
+                status: UserStatus.ACTIVE,
+              },
+              create: {
+                email,
+                name,
+                role: Role.ADMIN,
+                status: UserStatus.ACTIVE,
+              },
+            });
+
+            await ensureRegistrationRecords(user.id, user.email);
+
+            return {
+              id: user.id,
+              email: user.email,
+              name: user.name,
+              image: user.image,
+            };
+          },
+        }),
+      ]
+    : []),
+];
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   adapter: PrismaAdapter(prisma),
@@ -18,17 +73,13 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   pages: {
     signIn: "/join",
   },
-  providers: isGoogleOAuthConfigured
-    ? [
-        Google({
-          clientId: process.env.AUTH_GOOGLE_ID ?? "",
-          clientSecret: process.env.AUTH_GOOGLE_SECRET ?? "",
-          allowDangerousEmailAccountLinking: false,
-        }),
-      ]
-    : [],
+  providers,
   callbacks: {
     async signIn({ account, profile }) {
+      if (isLocalDevAuthEnabled && account?.provider === "local-dev") {
+        return true;
+      }
+
       if (account?.provider !== "google") {
         return false;
       }
