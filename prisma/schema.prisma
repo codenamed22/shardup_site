@@ -39,7 +39,7 @@ model User {
   accounts      Account[]
   sessions      Session[]
   profile       Profile?
-  applications  Application[]
+  application   Application?
 
   reviewedApplications Application[] @relation("ApplicationReviewer")
 }
@@ -102,7 +102,7 @@ model Profile {
 
 model Application {
   id         String            @id @default(cuid())
-  userId     String
+  userId     String            @unique
   status     ApplicationStatus @default(DRAFT)
   whyJoin    String?
   goals      String?
@@ -115,6 +115,5 @@ model Application {
   user     User  @relation(fields: [userId], references: [id], onDelete: Cascade)
   reviewer User? @relation("ApplicationReviewer", fields: [reviewedBy], references: [id])
 
-  @@index([userId])
   @@index([status])
 }

@@ -12,7 +12,13 @@ function getAdminEmails() {
 
 export async function syncUserAccess(userId: string, email?: string | null) {
   const adminEmails = getAdminEmails();
-  const shouldBeAdmin = Boolean(email && adminEmails.has(email.toLowerCase()));
+  const normalizedEmail = email?.trim().toLowerCase();
+  const localDevEmail = process.env.LOCAL_DEV_AUTH_EMAIL?.trim().toLowerCase();
+  const isConfiguredLocalDevUser =
+    process.env.NODE_ENV === "development" &&
+    process.env.LOCAL_DEV_AUTH_ENABLED === "true" &&
+    Boolean(normalizedEmail && localDevEmail && normalizedEmail === localDevEmail);
+  const shouldBeAdmin = Boolean(normalizedEmail && adminEmails.has(normalizedEmail));
 
   const user = await prisma.user.findUnique({
     where: { id: userId },
@@ -31,6 +37,14 @@ export async function syncUserAccess(userId: string, email?: string | null) {
     });
   }
 
+  if (!isConfiguredLocalDevUser && adminEmails.size > 0 && user.role === Role.ADMIN && !shouldBeAdmin) {
+    return prisma.user.update({
+      where: { id: userId },
+      data: { role: Role.MEMBER },
+      select: { id: true, role: true, status: true },
+    });
+  }
+
   return { id: userId, role: user.role, status: user.status };
 }
 
@@ -43,12 +57,11 @@ export async function ensureRegistrationRecords(userId: string, email?: string |
     create: { userId },
   });
 
-  const latestApplication = await prisma.application.findFirst({
+  const application = await prisma.application.findUnique({
     where: { userId },
-    orderBy: { createdAt: "desc" },
   });
 
-  if (!latestApplication && access?.role !== Role.ADMIN) {
+  if (!application && access?.role !== Role.ADMIN) {
     await prisma.application.create({
       data: { userId, status: ApplicationStatus.DRAFT },
     });

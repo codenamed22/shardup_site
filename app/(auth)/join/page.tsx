@@ -1,13 +1,11 @@
-import { ApplicationStatus, UserStatus } from "@prisma/client";
 import { redirect } from "next/navigation";
 import {
   auth,
   isGoogleOAuthConfigured,
   isLocalDevAuthEnabled,
+  localDevAuthRole,
   signIn,
 } from "../../../auth";
-import { ensureRegistrationRecords } from "../../../lib/access";
-import { prisma } from "../../../lib/prisma";
 
 export default async function JoinPage() {
   const session = await auth();
@@ -17,20 +15,7 @@ export default async function JoinPage() {
   }
 
   if (session?.user) {
-    await ensureRegistrationRecords(session.user.id, session.user.email);
-    await prisma.$transaction([
-      prisma.user.update({
-        where: { id: session.user.id },
-        data: { status: UserStatus.PENDING },
-      }),
-      prisma.application.create({
-        data: {
-          userId: session.user.id,
-          status: ApplicationStatus.DRAFT,
-        },
-      }),
-    ]);
-    redirect("/apply?started=1");
+    redirect("/apply");
   }
 
   return (
@@ -42,46 +27,32 @@ export default async function JoinPage() {
           Signing in creates your ShardUp identity. Full member access is granted
           after your application is reviewed.
         </p>
-        {isLocalDevAuthEnabled ? (
-          <form
-            action={async () => {
-              "use server";
-              await signIn("local-dev", {
-                email: "developer@shardup.local",
-                name: "Local Developer",
-                redirectTo: "/dashboard",
-              });
-            }}
-          >
-            <button className="secondary-button" type="submit">
-              Continue as local developer
-            </button>
-          </form>
-        ) : null}
-        {isGoogleOAuthConfigured ? (
-          <form
-            action={async () => {
-              "use server";
-              await signIn("google", { redirectTo: "/dashboard" });
-            }}
-          >
-            <button className="button" type="submit">
-              Continue with Google
-            </button>
-          </form>
-        ) : !isLocalDevAuthEnabled ? (
-          <div className="form-message error">
-            Google sign-in is not configured yet. Add <code>AUTH_GOOGLE_ID</code> and{" "}
-            <code>AUTH_GOOGLE_SECRET</code> to <code>.env.local</code>, then restart
-            the dev server.
-          </div>
-        ) : null}
-        {isLocalDevAuthEnabled ? (
-          <p className="dev-note">
-            Local developer sign-in is available only in development and creates
-            an active admin test user in your local database.
-          </p>
-        ) : null}
+        <div className="auth-actions-list">
+          {isGoogleOAuthConfigured ? (
+            <form
+              action={async () => {
+                "use server";
+                await signIn("google", { redirectTo: "/dashboard" });
+              }}
+            >
+              <button className="button" type="submit">
+                Continue with Google
+              </button>
+            </form>
+          ) : !isLocalDevAuthEnabled ? (
+            <div className="form-message error">
+              Google sign-in is not configured yet. Add <code>AUTH_GOOGLE_ID</code> and{" "}
+              <code>AUTH_GOOGLE_SECRET</code> to <code>.env.local</code>, then restart
+              the dev server.
+            </div>
+          ) : null}
+
+          {isLocalDevAuthEnabled ? (
+            <a className={isGoogleOAuthConfigured ? "secondary-button" : "button"} href="/dev-login">
+              Continue as local {localDevAuthRole === "admin" ? "admin" : "applicant"}
+            </a>
+          ) : null}
+        </div>
       </section>
     </main>
   );

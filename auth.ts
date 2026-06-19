@@ -7,7 +7,17 @@ import { prisma } from "./lib/prisma";
 import { ensureRegistrationRecords, syncUserAccess } from "./lib/access";
 
 const isDevelopment = process.env.NODE_ENV !== "production";
-export const isLocalDevAuthEnabled = isDevelopment;
+const configuredLocalDevRole = process.env.LOCAL_DEV_AUTH_ROLE?.trim().toLowerCase();
+export const isLocalDevAuthEnabled =
+  process.env.NODE_ENV === "development" && process.env.LOCAL_DEV_AUTH_ENABLED === "true";
+export const localDevAuthRole =
+  configuredLocalDevRole === "admin" ? "admin" : "member";
+export const localDevAuthEmail =
+  process.env.LOCAL_DEV_AUTH_EMAIL ??
+  (localDevAuthRole === "admin" ? "admin@shardup.local" : "applicant@shardup.local");
+export const localDevAuthName =
+  process.env.LOCAL_DEV_AUTH_NAME ??
+  (localDevAuthRole === "admin" ? "Local Admin" : "Local Applicant");
 export const isGoogleOAuthConfigured = Boolean(
   process.env.AUTH_GOOGLE_ID && process.env.AUTH_GOOGLE_SECRET,
 );
@@ -19,6 +29,14 @@ const providers = [
           clientId: process.env.AUTH_GOOGLE_ID ?? "",
           clientSecret: process.env.AUTH_GOOGLE_SECRET ?? "",
           allowDangerousEmailAccountLinking: false,
+          profile(profile) {
+            return {
+              id: profile.sub,
+              name: profile.name,
+              email: profile.email?.toLowerCase(),
+              image: profile.picture,
+            };
+          },
         }),
       ]
     : []),
@@ -27,26 +45,24 @@ const providers = [
         Credentials({
           id: "local-dev",
           name: "Local Development",
-          credentials: {
-            email: { label: "Email", type: "email" },
-            name: { label: "Name", type: "text" },
-          },
-          async authorize(credentials) {
-            const email = String(credentials?.email ?? "developer@shardup.local");
-            const name = String(credentials?.name ?? "Local Developer");
+          credentials: {},
+          async authorize() {
+            const isAdmin = localDevAuthRole === "admin";
+            const email = localDevAuthEmail.trim().toLowerCase();
+            const name = localDevAuthName.trim();
 
             const user = await prisma.user.upsert({
               where: { email },
               update: {
                 name,
-                role: Role.ADMIN,
-                status: UserStatus.ACTIVE,
+                role: isAdmin ? Role.ADMIN : Role.MEMBER,
+                status: isAdmin ? UserStatus.ACTIVE : UserStatus.PENDING,
               },
               create: {
                 email,
                 name,
-                role: Role.ADMIN,
-                status: UserStatus.ACTIVE,
+                role: isAdmin ? Role.ADMIN : Role.MEMBER,
+                status: isAdmin ? UserStatus.ACTIVE : UserStatus.PENDING,
               },
             });
 
@@ -84,11 +100,13 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         return false;
       }
 
-      if (profile && "email_verified" in profile && profile.email_verified === false) {
-        return false;
-      }
-
-      return true;
+      return Boolean(
+        profile &&
+          "email" in profile &&
+          typeof profile.email === "string" &&
+          "email_verified" in profile &&
+          profile.email_verified === true,
+      );
     },
     async jwt({ token, user }) {
       const userId =

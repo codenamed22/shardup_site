@@ -135,7 +135,7 @@ The app uses Auth.js with Google OAuth, Prisma, and Postgres for the authenticat
 
 Required environment variables are listed in `.env.example`.
 
-For local development, Google credentials are optional. When `NODE_ENV` is not `production`, `/join` shows a development-only local sign-in button that creates an active admin test user in your local database. This lets contributors run the app without sharing Google OAuth secrets.
+For local development, Google credentials are optional. Set `LOCAL_DEV_AUTH_ENABLED=true` in `.env.local` to show a development-only local sign-in option. Use `LOCAL_DEV_AUTH_ROLE=admin` to test application review, or `LOCAL_DEV_AUTH_ROLE=member` to test the applicant flow without sharing Google OAuth secrets.
 
 Google OAuth callback URLs:
 
@@ -145,7 +145,7 @@ Google OAuth callback URLs:
 Useful commands:
 
 - `npm run prisma:generate`
-- `npm run prisma:migrate`
+- `DATABASE_URL="postgresql://postgres:postgres@localhost:5432/shardup?schema=public" npm run prisma:migrate`
 - `npm run dev`
 - `npm run build`
 

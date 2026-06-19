@@ -1,6 +1,6 @@
 import { Role, UserStatus } from "@prisma/client";
 import { redirect } from "next/navigation";
-import { auth, signOut } from "../../../auth";
+import { auth } from "../../../auth";
 
 export default async function DashboardPage() {
   const session = await auth();
@@ -27,16 +27,6 @@ export default async function DashboardPage() {
             Review applications
           </a>
         ) : null}
-        <form
-          action={async () => {
-            "use server";
-            await signOut({ redirectTo: "/" });
-          }}
-        >
-          <button className="secondary-button" type="submit">
-            Sign out
-          </button>
-        </form>
       </section>
     </main>
   );

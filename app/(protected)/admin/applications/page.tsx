@@ -1,4 +1,4 @@
-import { ApplicationStatus, Role } from "@prisma/client";
+import { ApplicationStatus, Role, UserStatus } from "@prisma/client";
 import { redirect } from "next/navigation";
 import { auth } from "../../../../auth";
 import { prisma } from "../../../../lib/prisma";
@@ -7,14 +7,14 @@ import { reviewApplication } from "./actions";
 export default async function ApplicationsAdminPage() {
   const session = await auth();
 
-  if (!session?.user || session.user.role !== Role.ADMIN) {
+  if (!session?.user || session.user.role !== Role.ADMIN || session.user.status !== UserStatus.ACTIVE) {
     redirect("/dashboard");
   }
 
   const applications = await prisma.application.findMany({
     where: { status: ApplicationStatus.SUBMITTED },
     orderBy: { updatedAt: "asc" },
-    include: { user: true },
+    include: { user: { include: { profile: true } } },
   });
 
   return (
@@ -31,7 +31,18 @@ export default async function ApplicationsAdminPage() {
                 <div>
                   <h2>{application.user.name ?? application.user.email}</h2>
                   <p>{application.user.email}</p>
-                  <p>{application.goals}</p>
+                  <p>
+                    <strong>Batch:</strong> {application.user.profile?.batch ?? "Not provided"}
+                  </p>
+                  <p>
+                    <strong>Branch:</strong> {application.user.profile?.branch ?? "Not provided"}
+                  </p>
+                  <p>
+                    <strong>Goal:</strong> {application.goals ?? "Not provided"}
+                  </p>
+                  <p>
+                    <strong>Experience:</strong> {application.experience || "Not provided"}
+                  </p>
                 </div>
                 <form action={reviewApplication} className="review-actions">
                   <input type="hidden" name="applicationId" value={application.id} />

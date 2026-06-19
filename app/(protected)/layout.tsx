@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { auth } from "../../auth";
+import AccountBar from "../account-bar";
 
 export default async function ProtectedLayout({
   children,
@@ -12,5 +13,10 @@ export default async function ProtectedLayout({
     redirect("/join");
   }
 
-  return <>{children}</>;
+  return (
+    <>
+      <AccountBar />
+      {children}
+    </>
+  );
 }

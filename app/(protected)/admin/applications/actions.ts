@@ -9,7 +9,7 @@ import { prisma } from "../../../../lib/prisma";
 export async function reviewApplication(formData: FormData) {
   const session = await auth();
 
-  if (!session?.user || session.user.role !== Role.ADMIN) {
+  if (!session?.user || session.user.role !== Role.ADMIN || session.user.status !== UserStatus.ACTIVE) {
     redirect("/dashboard");
   }
 
@@ -26,10 +26,10 @@ export async function reviewApplication(formData: FormData) {
 
   const application = await prisma.application.findUnique({
     where: { id: applicationId },
-    select: { userId: true },
+    select: { userId: true, status: true },
   });
 
-  if (!application) {
+  if (!application || application.status !== ApplicationStatus.SUBMITTED) {
     return;
   }
 

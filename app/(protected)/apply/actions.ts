@@ -1,6 +1,6 @@
 "use server";
 
-import { ApplicationStatus } from "@prisma/client";
+import { ApplicationStatus, UserStatus } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
@@ -37,10 +37,22 @@ export async function submitApplication(formData: FormData) {
 
   await ensureRegistrationRecords(session.user.id, session.user.email);
 
-  const latestApplication = await prisma.application.findFirst({
-    where: { userId: session.user.id },
-    orderBy: { createdAt: "desc" },
+  const user = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    select: { status: true },
   });
+
+  if (!user || user.status !== UserStatus.PENDING) {
+    redirect(user?.status === UserStatus.ACTIVE ? "/dashboard" : "/apply");
+  }
+
+  const application = await prisma.application.findUnique({
+    where: { userId: session.user.id },
+  });
+
+  if (application && application.status !== ApplicationStatus.DRAFT) {
+    redirect("/apply");
+  }
 
   await prisma.$transaction([
     prisma.profile.upsert({
@@ -57,9 +69,9 @@ export async function submitApplication(formData: FormData) {
         branch: parsed.data.branch,
       },
     }),
-    latestApplication
+    application
       ? prisma.application.update({
-          where: { id: latestApplication.id },
+          where: { id: application.id },
           data: {
             status: ApplicationStatus.SUBMITTED,
             goals: parsed.data.goals,
