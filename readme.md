@@ -150,3 +150,41 @@ Useful commands:
 - `npm run build`
 
 Registration is application-first. Google sign-in creates the user identity, but member access remains gated until the application is approved by an admin.
+
+## Deployment to Vercel
+
+This is a Next.js app that deploys directly to Vercel.
+
+### Required Vercel project settings
+
+1. **Framework preset:** Next.js
+2. **Build command:** `prisma generate && next build`
+3. **Install command:** `npm install`
+4. **Environment variables:** Add these in the Vercel dashboard:
+
+   - `DATABASE_URL` — PostgreSQL connection string (e.g., from Supabase, Neon, or Railway)
+   - `AUTH_SECRET` — generate with `openssl rand -base64 32`
+   - `AUTH_GOOGLE_ID` — Google OAuth client ID
+   - `AUTH_GOOGLE_SECRET` — Google OAuth client secret
+   - `AUTH_URL` — `https://YOUR_DOMAIN` (no trailing slash)
+   - `ADMIN_EMAILS` — comma-separated admin emails
+   - `NEXT_PUBLIC_` prefix is not needed for any current variable
+
+5. **Google OAuth redirect URI:** Add `https://YOUR_DOMAIN/api/auth/callback/google` to the Google Cloud OAuth client.
+
+### Database migrations
+
+Vercel builds do not automatically apply Prisma migrations. Run migrations from your local machine against the production database:
+
+```bash
+DATABASE_URL="postgresql://..." npm run prisma:migrate
+```
+
+Or set up a Vercel Deploy Hook / CI step that runs `prisma migrate deploy` after production deploys.
+
+### Important notes
+
+- The local development-only auth path is disabled in production (`NODE_ENV=production`).
+- Make sure your production Postgres provider allows connections from Vercel serverless functions.
+- Some providers require a connection pooler URL for serverless environments.
+- Do not commit `.env.local` or any real credentials to the repo.
