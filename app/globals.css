@@ -414,21 +414,23 @@ a {
 
 .event-image,
 .event-hero-image {
+  display: block;
   width: 100%;
   border: 1px solid var(--line);
-  object-fit: cover;
+  background: #fffef8;
 }
 
 .event-image {
   aspect-ratio: 4 / 3;
   height: 100%;
   min-height: 150px;
+  object-fit: contain;
 }
 
 .event-hero-image {
-  aspect-ratio: 16 / 9;
-  max-height: 360px;
+  height: auto;
   margin-top: 28px;
+  object-fit: contain;
 }
 
 .event-card h2 {
@@ -448,6 +450,25 @@ a {
 
 .event-card p:last-child {
   margin-bottom: 0;
+}
+
+.event-summary-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 12px 0 14px;
+}
+
+.event-summary-meta span {
+  padding: 7px 10px;
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--accent);
+  background: var(--paper);
+  color: var(--muted);
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 0.88rem;
+  font-weight: 800;
+  line-height: 1.25;
 }
 
 .event-meta,
@@ -478,15 +499,28 @@ a {
 
 .event-detail-meta {
   display: grid;
-  gap: 6px;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
   margin: 24px 0;
-  padding: 18px;
-  border-left: 4px solid var(--accent);
-  background: #fffef8;
 }
 
 .event-detail-meta p {
   margin: 0;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-top: 4px solid var(--accent);
+  background: #fffef8;
+  color: var(--ink);
+  font-weight: 800;
+}
+
+.event-detail-meta span {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--accent);
+  font-size: 0.7rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
 }
 
 .event-detail-actions {
@@ -530,7 +564,8 @@ a {
   .about-section,
   .pillar-list,
   .application-row,
-  .event-card {
+  .event-card,
+  .event-detail-meta {
     grid-template-columns: 1fr;
   }
 
