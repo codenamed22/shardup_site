@@ -194,7 +194,40 @@ npm run build          # production build
 - `npm run test:watch` re-runs unit tests on change.
 - `npm run format` auto-fixes formatting.
 
-End-to-end, visual-regression, and Lighthouse performance suites are added in follow-up PRs.
+### End-to-end tests
+
+Playwright drives the real app in `tests/e2e/` (auth-aware navigation, events + RSVP gating, route redirects, the health endpoint). It uses the development-only sign-in, so it requires a Postgres database and runs the dev server automatically.
+
+```bash
+# One-time: install the browser
+npx playwright install chromium
+
+# Requires a running Postgres. Point DATABASE_URL at a test database.
+DATABASE_URL="postgresql://postgres:postgres@localhost:5432/shardup?schema=public" npm run test:e2e
+```
+
+`global-setup` applies migrations and seeds a deterministic, always-future event before the suite runs. `npm run test:e2e:ui` opens the Playwright UI runner.
+
+End-to-end runs in CI against a Postgres service container. Visual-regression and Lighthouse performance suites are added in follow-up PRs.
+
+### CI and branch protection
+
+Every pull request runs the `verify` job (prettier, lint, typecheck, unit tests, build) and the `e2e` job (Playwright against a Postgres service). Superseded runs on the same branch are auto-cancelled via a workflow `concurrency` group.
+
+To make a green suite required before merging, enable branch protection on `main` (repo admin, after the workflow has run once so the check names are registered):
+
+```bash
+gh api -X PUT repos/Gotnochill/shardup_site/branches/main/protection \
+  -H "Accept: application/vnd.github+json" \
+  -f "required_status_checks[strict]=true" \
+  -f "required_status_checks[contexts][]=Static checks & unit tests" \
+  -f "required_status_checks[contexts][]=End-to-end tests" \
+  -F "enforce_admins=true" \
+  -f "required_pull_request_reviews[required_approving_review_count]=1" \
+  -F "restrictions=null"
+```
+
+After this, PRs cannot merge unless both CI jobs pass.
 
 ## Deployment to Vercel
 
